@@ -180,7 +180,7 @@ Param(
     [Parameter(
         Position=20,
         Mandatory=$False,
-        HelpMessage="If you want to use a network share to get the install.wim. Can not combine with USB (bool true false, default is false)"
+        HelpMessage="If you want to use a network share to get the install.wim. (bool true false, default is false)"
         )]
         [bool]$WDS = $False
     )
@@ -2043,10 +2043,8 @@ Function Update-Win10WIM
         If ($WDS)
         {
             Write-Host "Copying scripts to $BootImageMountFolder..."
-            Copy-Item -Path "$WorkingDirPath\WDSImage\CreatePartitions-UEFI.txt" -Destination $BootImageMountFolder
-            Copy-Item -Path "$WorkingDirPath\WDSImage\CreatePartitions-UEFI_Source.txt" -Destination $BootImageMountFolder
-            Copy-Item -Path "$WorkingDirPath\WDSImage\Imaging.ps1" -Destination $BootImageMountFolder
-            Copy-Item -Path "$WorkingDirPath\WDSImage\Install.cmd" -Destination $BootImageMountFolder
+            Copy-Item -Path "$WorkingDirPath\WDSImage\Imaging.ps1" -Destination $BootImageMountFolder -Force
+            Copy-Item -Path "$WorkingDirPath\WDSImage\Install.cmd" -Destination $BootImageMountFolder -Force
             Copy-Item -Path "$WorkingDirPath\WDSImage\startnet.cmd" -Destination "$BootImageMountFolder\Windows\System32" -Force
         }
 
