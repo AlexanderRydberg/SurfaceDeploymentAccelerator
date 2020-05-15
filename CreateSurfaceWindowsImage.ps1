@@ -175,7 +175,14 @@ Param(
         HelpMessage="WinPE language to be set"
         )]
         [ValidateSet('ar-sa', 'bg-bg', 'cs-cz', 'da-dk', 'de-de', 'el-gr', 'en-gb', 'en-us', 'es-es', 'es-mx', 'et-ee', 'fi-fi', 'fr-ca', 'fr-fr', 'he-il', 'hr-hr', 'hu-hu', 'it-it', 'ja-jp', 'ko-kr', 'lt-lt', 'lv-lv', 'nb-no', 'nl-nl', 'pl-pl', 'pt-br', 'pt-pt', 'ro-ro', 'ru-ru', 'sk-sk', 'sl-si', 'sr-latn-rs', 'sv-se', 'th-th', 'tr-tr', 'uk-ua', 'zh-cn', 'zh-tw')]
-        [string]$Language = "en-us"
+        [string]$Language = "en-us",
+
+    [Parameter(
+        Position=20,
+        Mandatory=$False,
+        HelpMessage="If you want to use a network share to get the install.wim. Can not combine with USB (bool true false, default is false)"
+        )]
+        [bool]$WDS = $False
     )
 
 
@@ -2033,6 +2040,16 @@ Function Update-Win10WIM
             Copy-Item -Path "$WorkingDirPath\UsbImage\startnet.cmd" -Destination "$BootImageMountFolder\Windows\System32" -Force
         }
 
+        If ($WDS)
+        {
+            Write-Host "Copying scripts to $BootImageMountFolder..."
+            Copy-Item -Path "$WorkingDirPath\WDSImage\CreatePartitions-UEFI.txt" -Destination $BootImageMountFolder
+            Copy-Item -Path "$WorkingDirPath\WDSImage\CreatePartitions-UEFI_Source.txt" -Destination $BootImageMountFolder
+            Copy-Item -Path "$WorkingDirPath\WDSImage\Imaging.ps1" -Destination $BootImageMountFolder
+            Copy-Item -Path "$WorkingDirPath\WDSImage\Install.cmd" -Destination $BootImageMountFolder
+            Copy-Item -Path "$WorkingDirPath\WDSImage\startnet.cmd" -Destination "$BootImageMountFolder\Windows\System32" -Force
+        }
+
         Write-Output ""
         Write-Output ""
 
@@ -2326,6 +2343,7 @@ If ($UseLocalDriverPath -eq $True)
 }
 Write-Output "  Create USB key:             $CreateUSB" | Receive-Output -Color White
 Write-Output "  Create ISO:                 $CreateISO" | Receive-Output -Color White
+Write-Output "  Boot image for network:     $WDS" | Receive-Output -Color White
 Write-Output ""
 Write-Output ""
 Start-Sleep 2
