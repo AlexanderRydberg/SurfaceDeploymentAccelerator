@@ -486,23 +486,7 @@ Sleep 2
 
 
 # Use MessageBox to prompt for reboot
-Write-Output "Restart prompt..."
-[System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | Out-Null
-$result = [System.Windows.Forms.MessageBox]::Show("Reboot?", $PromptString, 'YesNo')
-If ( $result -eq 'No' )
-{
-    try
-    {
-        $input = [int] ( Read-Host -Prompt "?" )
-    }
-    catch
-    {
-        Write-Output "Invalid Input"
-        continue
-    }
-}
-Else
-{
-    Restart-Computer -Force
-    Exit
-}
+Write-Output "Restarting"
+Sleep 10
+Restart-Computer -Force
+Exit
