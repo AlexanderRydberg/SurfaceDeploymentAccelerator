@@ -2042,7 +2042,7 @@ Function Update-Win10WIM
 
         If ($WDS)
         {
-            Write-Host "Copying scripts to $BootImageMountFolder..."
+            Write-Host "Copying WDS-Specific scripts to $BootImageMountFolder..."
             Copy-Item -Path "$WorkingDirPath\WDSImage\Imaging.ps1" -Destination $BootImageMountFolder -Force
             Copy-Item -Path "$WorkingDirPath\WDSImage\Install.cmd" -Destination $BootImageMountFolder -Force
             Copy-Item -Path "$WorkingDirPath\WDSImage\startnet.cmd" -Destination "$BootImageMountFolder\Windows\System32" -Force
