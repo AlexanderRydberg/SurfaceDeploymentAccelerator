@@ -2355,7 +2355,10 @@ If ($BootWIM)
 {
     $UpdateBootWIM = $True
 }
-
+Else
+{
+    $UpdateBootWIM = $False
+}
 
 # Download any components requested
 If ($Device)
