@@ -251,6 +251,31 @@ Function Get-DiskIndex
 }
 
 
+Function Get-Which-Surface
+{
+	$SystemInformation = Get-WmiObject -Namespace root\wmi -Class MS_SystemInformation
+    $Product = $SystemInformation.SystemSKU
+	
+	If ($Product -eq "Surface_Pro_4")
+	{
+		$ProductSKU = "SurfacePro4"
+	}
+	ElseIf (($Product -eq "Surface_Pro_1796") -or ($Product -eq "Surface_Pro_1807"))
+	{
+		$ProductSKU = "SurfacePro5"
+	}
+	
+	ElseIf ($Product -like "Surface_Pro_6_*")
+	{
+		$ProductSKU = "SurfacePro6"
+	}
+	Else
+	{
+		$ProductSKU = "Generic"
+	}
+	
+	return $ProductSKU
+}
 
 ###########################
 # Begin script processing #
@@ -320,6 +345,7 @@ If ($NTCurrentVersion)
 Write-Output ""
 Write-Output "- Hardware Information"
 $SystemInformation = (Get-WmiObject -Namespace root\wmi -Class MS_SystemInformation)
+$ProductSKU = Get-Which-Surface
 
 If ($SystemInformation)
 {
@@ -328,6 +354,7 @@ If ($SystemInformation)
         Write-Output "   - Manufacturer     $($SystemInformation.BaseBoardManufacturer)"
         Write-Output "   - Product          $($SystemInformation.BaseBoardProduct)"
         Write-Output "   - SystemSKU        $($SystemInformation.SystemSKU)"
+        Write-Output "   - Model            $ProductSKU"
     }
     catch {}
 }
@@ -378,8 +405,10 @@ ForEach ($Drive in $Drives)
 {
     $TempDrive = $Drive.Root
     Write-Output "Checking drive $TempDrive for WIM/SWM files..."
-    $WIMFile = Get-ChildItem -Path $TempDrive -Recurse | Where-Object { $_.Name -like "*install*.wim" }
-    $SWMFile = Get-ChildItem -Path $TempDrive -Recurse | Where-Object { $_.Name -like "*install*--Split.swm" }
+
+    $WIMFile = Get-ChildItem -Path $TempDrive -Recurse | Where-Object { $_.Name -like "*$ProductSKU*install*.wim" }
+    $SWMFile = Get-ChildItem -Path $TempDrive -Recurse | Where-Object { $_.Name -like "*$ProductSKU*install*--Split.swm" }
+	
     If ($WIMFile)
     {
         $WIMFound = $true
