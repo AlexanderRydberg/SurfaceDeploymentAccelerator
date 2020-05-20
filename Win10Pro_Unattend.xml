@@ -155,6 +155,11 @@
                     <Description>Disable Microsoft Edge first-run popup</Description>
                     <Path>reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v PreventFirstRunPage /d 1 /t REG_DWORD /f</Path>
                 </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>31</Order>
+                    <Description>Resync time</Description>
+                    <Path>powershell Restart-Service W32Time; w32tm /resync /force</Path>
+                </RunSynchronousCommand>
             </RunSynchronous>
         </component>
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
