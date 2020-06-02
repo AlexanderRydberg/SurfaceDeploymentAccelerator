@@ -296,6 +296,28 @@ Function Rename-Computer-From-XML
 
 }
 
+Function Which-Surface
+{
+	
+	If ($Product -eq "Surface_Pro_4")
+	{
+		$ProductSKU = "SurfacePro4"
+	}
+	ElseIf (($Product -eq "Surface_Pro_1796") -or ($Product -eq "Surface_Pro_1807"))
+	{
+		$ProductSKU = "SurfacePro5"
+	}
+	
+	ElseIf ($Product -like "Surface_Pro_6_*")
+	{
+		$ProductSKU = "SurfacePro6"
+	}
+	Else
+	{
+		$ProductSKU = ""
+	}
+}
+
 ###########################
 # Begin script processing #
 ###########################

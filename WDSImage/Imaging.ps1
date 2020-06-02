@@ -269,6 +269,10 @@ Function Get-Which-Surface
 	{
 		$ProductSKU = "SurfacePro6"
 	}
+	ElseIf ($Product -like "Surface_3")
+	{
+		$ProductSKU = "SurfacePro3"
+	}
 	Else
 	{
 		$ProductSKU = "Generic"
@@ -358,8 +362,11 @@ If ($SystemInformation)
     }
     catch {}
 }
+
+
 Write-Output ""
 Write-Output ""
+
 
 
 # Make sure we have valid diskpart scripts and installation WIM/SWMs located before we go further
