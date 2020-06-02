@@ -5,7 +5,7 @@
 .DESCRIPTION
     This script downloads the ADK and WinPE addon, uninstalls any previous versions and installs the version referenced by the aka.ms link in the script.
 
-
+    
     // *************
     // *  CAUTION  *
     // *************
@@ -16,7 +16,7 @@
     tools used to create and debug this script.
 
     In other words, if you break it, you get to keep the pieces.
-
+    
 .EXAMPLE
     .\CreateSurfaceWindowsImage.ps1 -ISO <ISO path> -OSSKU Pro -Device SurfacePro7
 
@@ -186,7 +186,6 @@ Param(
     )
 
 
-
 Function Receive-Output
 {
     Param(
@@ -245,7 +244,7 @@ Function Get-RedirectedUrl
     $Response = $Request.GetResponse()
 
     If ($Response.ResponseUri)
-    {
+    {        
         $Response.GetResponseHeader("Location")
     }
     $Response.Close()
@@ -371,8 +370,8 @@ Function PrereqCheck
         Write-Warning "$Env:Computername Aborting script..."
         Exit
     }
-
-
+    
+    
     # Validating that the ADK is installed
     If (!(Test-Path $DISMFile))
     {
@@ -395,11 +394,11 @@ Function PrereqCheck
             $uninstall32 = gci "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" | ForEach { gp $_.PSPath } | ? { $_ -like "*Assessment and Deployment*" } | select UninstallString
             $uninstall64 = gci "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" | ForEach { gp $_.PSPath } | ? { $_ -like "*Assessment and Deployment*" } | select UninstallString
 
-            If ($uninstall64)
+            If ($uninstall64) 
             {
                 ForEach ($u in $uninstall64)
                 {
-                    $u = $u.UninstallString -Replace "/uninstall",""
+                    $u = $u.UninstallString -Replace "/uninstall","" 
                     $u = $u.Trim()
                     Write-Output "Command is $u Args are /uninstall /quiet" | Receive-Output -Color Gray
                     Start-Process -filepath $u -argumentlist "/uninstall /quiet" -wait
@@ -421,7 +420,7 @@ Function PrereqCheck
             {
                 $SourceFilePath = $(Get-Item $SourceFile).FullName
                 Write-Output "Found Installation files for ADK at $SourceFilePath" | Receive-Output -Color Gray
-            }
+            }	
             Else
             {
                 Check-Internet
@@ -451,7 +450,7 @@ Function PrereqCheck
         {
             $SourceFilePath = $(Get-Item $SourceFile).FullName
             Write-Output "Found Installation files for ADK WinPE at $SourceFilePath" | Receive-Output -Color Gray
-        }
+        }	
         Else
         {
             Check-Internet
@@ -543,18 +542,18 @@ Function Download-LatestUpdates
         {
             $global:KBGUID = $array | Where-Object {($_.description -like "*$Date*") -and ($_.description -like "*Security Update for Adobe Flash Player for Windows 10*") -and ($_.description -like "*$OSBuild*")}
         }
-
+        
         $updatesFound = $false
 
         ForEach ($Object in $global:KBGUID)
         {
             $kb = $Object.kbId
             $curTxt = $Object.description
-
+            
             ##Create Post Request to get the Download URL of the Update
             $Post = @{ size = 0; updateID = $kb; uidInfo = $kb } | ConvertTo-Json -Compress
             $PostBody = @{ updateIDs = "[$Post]" }
-
+            
             ## Fetch and parse the download URL
             $PostRes = (Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx' -Method Post -Body $postBody).content
             $DownloadLinks = ($PostRes | Select-String -AllMatches -Pattern "(http[s]?\://download\.windowsupdate\.com\/[^\'\""]*)" | Select-Object -Unique | ForEach-Object { [PSCustomObject] @{ Source = $_.matches.value } } ).source
@@ -592,7 +591,7 @@ Function Download-LatestUpdates
                 }
             }
         }
-
+        
         if(!($updatesFound))
         {
             $global:KBGUID = $null
@@ -625,12 +624,12 @@ Function Get-LatestUpdates
     {
         New-Item -path "$Path" -ItemType "directory" | Out-Null
     }
-
+    
     If (!($Date))
     {
         $Date = Get-Date -Format "yyyy-MM"
     }
-
+    
     $ServicingURI = "http://www.catalog.update.microsoft.com/Search.aspx?q=" + $Date + " Servicing Stack " + $Architecture + " windows 10 " + $OSBuild
     $CumulativeURI = "http://www.catalog.update.microsoft.com/Search.aspx?q=" + $Date + ' "cumulative update for Windows 10" ' + $Architecture + " " + $OSBuild
     $CumulativeDotNetURI = "http://www.catalog.update.microsoft.com/Search.aspx?q=" + $Date + ' "cumulative update for .NET Framework" ' + $Architecture + " windows 10 " + $OSBuild
@@ -767,7 +766,7 @@ Function Get-LatestUpdates
         }
         $Date = Get-Date -Format "yyyy-MM"
         $LoopBreak = $null
-
+        
     }
 }
 
@@ -860,11 +859,11 @@ Function Get-LatestSurfaceEthernetDrivers
         {
             $kb = $Object.kbId
             $curTxt = $Object.description
-
+    
             ##Create Post Request to get the Download URL of the Update
             $Post = @{ size = 0; updateID = $kb; uidInfo = $kb } | ConvertTo-Json -Compress
             $PostBody = @{ updateIDs = "[$Post]" }
-
+    
             ## Fetch and parse the download URL
             $PostRes = (Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx' -Method Post -Body $postBody).content
             $DownloadLinks = ($PostRes | Select-String -AllMatches -Pattern "(http[s]?\://download\.windowsupdate\.com\/[^\'\""]*)" | Select-Object -Unique | ForEach-Object { [PSCustomObject] @{ Source = $_.matches.value } } ).source
@@ -1035,7 +1034,7 @@ Function Get-LatestVCRuntimes
     $VC2015x64 = DownloadFile -URL $VC2015x64URL -Path "$VisualCRuntimePath\2015"
     Write-Output "Downloaded File: $VC2015x64"
     Write-Output ""
-
+    
     # 2017
     $VC2017x86 = DownloadFile -URL $VC2017x86URL -Path "$VisualCRuntimePath\2017"
     Write-Output "Downloaded File: $VC2017x86"
@@ -1043,7 +1042,7 @@ Function Get-LatestVCRuntimes
     $VC2017x64 = DownloadFile -URL $VC2017x64URL -Path "$VisualCRuntimePath\2017"
     Write-Output "Downloaded File: $VC2017x64"
     Write-Output ""
-
+    
 }
 
 
@@ -1178,7 +1177,7 @@ Function Get-OSWIMFromISO
     If ($ISOPath)
     {
         Write-Output "ISO successfully mounted at $Drive" | Receive-Output -Color White
-        Write-Output ""
+        Write-Output ""   
     }
     Else
     {
@@ -1313,7 +1312,7 @@ Function Get-OSWIMFromISO
             Start-Sleep 5
         }
     }
-
+    
     If (Test-Path "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\SourceWIMs\boot.wim")
     {
         Write-Output "Deleting $DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\SourceWIMs\boot.wim..." | Receive-Output -Color Gray
@@ -1332,17 +1331,16 @@ Function Get-OSWIMFromISO
 
     Write-Output "Copying $WindowsKitsInstall\Windows Preinstallation Environment\$Arch\en-us\winpe.wim to $DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\SourceWIMs\boot.wim..." | Receive-Output -Color White
     Copy-Item -Path "$WindowsKitsInstall\Windows Preinstallation Environment\$Arch\en-us\winpe.wim" -Destination "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\SourceWIMs\boot.wim"
-    $BootWIMs = Get-ChildItem -Path "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\SourceWIMs" -filter boot.wim -Recurse
-    ForEach ($BootWIM in $BootWIMs)
+    $SourceBootWIMs = Get-ChildItem -Path "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\SourceWIMs" -filter boot.wim -Recurse
+    ForEach ($SourceBootWIM in $SourceBootWIMs)
     {
-        $TempBootWIM = $BootWIM.FullName
+        $TempBootWIM = $SourceBootWIM.FullName
 
         $PEWIM = Get-WindowsImage -ImagePath $TempBootWIM | Where-Object {$_.ImageName -like "*Windows PE*"}
 
         $ImagePath = $PEWIM.ImagePath
         $ImageIndex = $PEWIM.ImageIndex
         $ImageName = $PEWIM.ImageName
-        $global:WinPEVersion = (& $DISMFile /Get-WimInfo /WimFile:$ImagePath /index:$ImageIndex | Select-String "Version ").ToString().Split(":")[1].Trim()
     }
 
     If ($DotNet35 -eq $true)
@@ -1428,7 +1426,7 @@ Function Update-Win10WIM
         [bool]$MakeUSBMedia,
         [bool]$MakeISOMedia
     )
-
+    
 
     $SourceName = Switch ($SourceName)
     {
@@ -1496,7 +1494,7 @@ Function Update-Win10WIM
     Write-Output ""
     Write-Output ""
     Write-Output ""
-
+    
     Write-Output ""
     Write-Output ""
     Write-Output " *********************************************" | Receive-Output -Color Cyan
@@ -1594,7 +1592,7 @@ Function Update-Win10WIM
                 Add-PackageIntoWindowsImage -ImageMountFolder $ImageMountFolder -PackagePath $DotNetPath -TempImagePath $TmpImage
             }
         }
-
+        
         if ($AdobeFlashUpdate)
         {
             $AFU = Get-ChildItem -Path $AdobeFlashUpdatePath
@@ -1712,7 +1710,7 @@ Function Update-Win10WIM
             }
             Else
             {
-                # Add Servicing Stack updates to the WinRE image
+                # Add Servicing Stack updates to the WinRE image 
                 Write-Output "Adding Servicing Stack updates to $WinREImageMountFolder..." | Receive-Output -Color White
                 Add-PackageIntoWindowsImage -ImageMountFolder $WinREImageMountFolder -PackagePath $ServicingStackPath -TempImagePath $TmpWinREImage
             }
@@ -1732,7 +1730,7 @@ Function Update-Win10WIM
                 Add-PackageIntoWindowsImage -ImageMountFolder $WinREImageMountFolder -PackagePath $CumulativeUpdatePath -TempImagePath $TmpWinREImage
             }
         }
-
+        
         If ($DotNet35)
         {
             $DNU = Get-ChildItem -Path $DotNetPath
@@ -1989,46 +1987,46 @@ Function Update-Win10WIM
 
         Write-Output "Adding WMI..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-WMI.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-WMI_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-WMI_$Language.cab" | Out-Null
 
         Write-Output "Adding PE Scripting..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-Scripting.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-Scripting_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-Scripting_$Language.cab" | Out-Null
 
         Write-Output "Adding Enhanced Storage..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-EnhancedStorage.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-EnhancedStorage_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-EnhancedStorage_$Language.cab" | Out-Null
 
         Write-Output "Adding Bitlocker support..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-SecureStartup.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-SecureStartup_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-SecureStartup_$Language.cab" | Out-Null
 
         Write-Output "Adding .NET..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-NetFx.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-NetFx_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-NetFx_$Language.cab" | Out-Null
 
         Write-Output "Adding PowerShell..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-PowerShell.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-PowerShell_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-PowerShell_$Language.cab" | Out-Null
 
         Write-Output "Adding Storage WMI..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-StorageWMI.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-StorageWMI_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-StorageWMI_$Language.cab" | Out-Null
 
         Write-Output "Adding DISM support..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-DismCmdlets.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-DismCmdlets_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-DismCmdlets_$Language.cab" | Out-Null
 
         Write-Output "Adding Secure Boot support..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-SecureBootCmdlets.cab" | Out-Null
 
         Write-Output "Adding Secure Startup support..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-DismCmdlets.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-DismCmdlets_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-DismCmdlets_$Language.cab" | Out-Null
 
         Write-Output "Adding WinRE support..." | Receive-Output -Color White
         Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\WinPE-WinReCfg.cab" | Out-Null
-        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\en-us\WinPE-WinReCfg_en-us.cab" | Out-Null
+        Add-WindowsPackage -Path $BootImageMountFolder -PackagePath "$WinPEOCPath\$Language\WinPE-WinReCfg_$Language.cab" | Out-Null
 
 
         If (($MakeUSBMedia) -or ($MakeISOMedia))
@@ -2150,7 +2148,7 @@ Function Update-Win10WIM
         Copy-Item -Path "$WorkingDirPath\UsbImage\Imaging.ps1" -Destination "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\Temp\Media"
         Copy-Item -Path "$WorkingDirPath\UsbImage\Install.cmd" -Destination "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\Temp\Media"
         Copy-Item -Path "$WorkingDirPath\UsbImage\startnet.cmd" -Destination "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\Temp\Media"
-
+        
         If ($MakeUSBMedia)
         {
             Write-Output "Insert USB drive 16GB+ in size, and press ENTER" | Receive-Output -Color Yellow
@@ -2209,6 +2207,8 @@ Function Update-Win10WIM
                     Write-Output "Copying $RefImage to $NewUSBDriveLetter..." | Receive-Output -Color White
                     Copy-Item -Path "$RefImage" -Destination "$NewUSBDriveLetter\Sources" -Recurse
                 }
+				Write-Output "Copying surface_devices.xml to $NewUSBDriveLetter\Sources..." | Receive-Output -Color White
+				Copy-Item -Path "$WorkingDirPath\UsbImage\surface_devices.xml" -Destination $NewUSBDriveLetter\Sources
             }
         }
 
@@ -2219,7 +2219,7 @@ Function Update-Win10WIM
             $etfsboot = "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\Temp\fwfiles\etfsboot.com"
             $MediaSource = "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\Temp\Media"
             $args = "-l$Device -bootdata:2#p0,e,b$etfsboot#pEF,e,b$efisys -m -u1 -udfver102 $MediaSource $DestinationFolder\$OSSKU\$global:OSVersion\$Architecture\$Device-Boot-$Build-$Now.iso"
-
+            
             If ($SplitWIM -eq $True)
             {
                 $SplitWIMs = Get-ChildItem -Path "$DestinationFolder\$OSSKU\$global:OSVersion\$Architecture" -Filter *install*$Now*.swm -Recurse
@@ -2295,7 +2295,7 @@ If ($Device)
     [string]$XmlPath = "$WorkingDirPath\WinPE_Drivers.xml"
     [Xml]$WinPEXML = Get-Content $XmlPath
     [System.Xml.XmlElement] $root = $WinPEXML.get_DocumentElement()
-
+    
     $SurfaceDevices = $WinPEXML.Surface.Devices
 }
 
@@ -2337,6 +2337,7 @@ Write-Output "  Cumulative Update:          $CumulativeUpdate" | Receive-Output 
 Write-Output "  Cumulative DotNet Updates:  $CumulativeUpdate" | Receive-Output -Color White
 Write-Output "  Adobe Flash Player Updates: $AdobeFlashUpdate" | Receive-Output -Color White
 Write-Output "  Device drivers:             $Device" | Receive-Output -Color White
+Write-Output "  WinPE Language:             $Language" | Receive-Output -Color White
 If ($UseLocalDriverPath -eq $True)
 {
     Write-Output "  Use Local driver path:      $LocalDriverPath" | Receive-Output -Color White
