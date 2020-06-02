@@ -250,6 +250,51 @@ Function Get-DiskIndex
     Return $DiskIndex
 }
 
+Function Rename-Computer-From-XML
+{
+    Param(
+        $serialNumber,
+		$XMLDeviceList
+    )
+	
+	$pathToUnattendXML = "W:\Windows\System32\Sysprep\unattend.xml"
+	If ($XMLDeviceList -ne "NoList")
+	{
+		$xml = New-Object XML
+		$xml = [xml](Get-Content $XMLDeviceList)
+		$getNameFromXML = $xml.Surface.device
+		
+		$newName =""
+		foreach($device in $getNameFromXML)
+		{
+			if($serialNumber -eq $device.serial )
+			{
+				$newName = $device.name
+				Write-Output "Found matching serial in XML!"
+				Break
+			}
+		}
+		
+		if($newName -ne "")
+		{
+			Write-Output "Renaming machine to: $newName"
+			(Get-Content  $pathToUnattendXML | ForEach { $_ -replace "%MACHINENAME%", $newName }) | out-file $pathToUnattendXML -Encoding Default
+			Rename-Computer -NewName $newName -force
+		}
+		
+		Else
+		{
+			(Get-Content  $pathToUnattendXML | ForEach { $_ -replace "%MACHINENAME%", "" }) | out-file $pathToUnattendXML -Encoding Default
+			Write-Output "Did not find $serialNumber in XML-file. No rename"
+		}
+	}
+	Else
+	{
+		(Get-Content  $pathToUnattendXML | ForEach { $_ -replace "%MACHINENAME%", "" }) | out-file $pathToUnattendXML -Encoding Default
+		Write-Output "Did not find XML-file. Getting random name."
+	}
+
+}
 
 Function Get-Which-Surface
 {
@@ -349,6 +394,7 @@ If ($NTCurrentVersion)
 Write-Output ""
 Write-Output "- Hardware Information"
 $SystemInformation = (Get-WmiObject -Namespace root\wmi -Class MS_SystemInformation)
+$Serialnumber	= (Get-WmiObject -Query "Select * from Win32_Bios")
 $ProductSKU = Get-Which-Surface
 
 If ($SystemInformation)
@@ -359,6 +405,7 @@ If ($SystemInformation)
         Write-Output "   - Product          $($SystemInformation.BaseBoardProduct)"
         Write-Output "   - SystemSKU        $($SystemInformation.SystemSKU)"
         Write-Output "   - Model            $ProductSKU"
+        Write-Output "   - SerialNumber     $($Serialnumber.SerialNumber)"
     }
     catch {}
 }
@@ -406,6 +453,24 @@ Else
     Write-Output ""
     Write-Output ""
     $WIMFound = $false
+}
+
+ForEach ($Drive in $Drives)
+{
+    $TempDrive = $Drive.Root
+    Write-Output "Checking drive $TempDrive for XML with names..."
+	$XMLDeviceList = Get-ChildItem -Path $TempDrive -Recurse | Where-Object { $_.Name -like "*surface_devices*.xml" }
+	If ($XMLDeviceList)
+    {
+		$XMLDeviceList = $XMLDeviceList.FullName
+        Write-Output "Found file $XMLDeviceList"
+        Write-Output ""
+		Break
+	}
+	Else 
+	{
+		Write-Output "Could not find any interesting XML files in $TempDrive, continuing..."
+	}
 }
 
 ForEach ($Drive in $Drives)
@@ -520,9 +585,18 @@ $reagentc = "W:\Windows\System32\reagentc.exe"
 Write-Output ""
 Sleep 2
 
+If ($XMLDeviceList)
+{
+	Rename-Computer-From-XML $Serialnumber.SerialNumber $XMLDeviceList
+}
 
-# Use MessageBox to prompt for reboot
-Write-Output "Restarting"
-Sleep 10
+Else
+{
+	$XMLDeviceList = "NoList"
+	Rename-Computer-From-XML $Serialnumber.SerialNumber $XMLDeviceList
+}
+
+Start-Sleep -s 30
 Restart-Computer -Force
 Exit
+
